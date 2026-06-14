@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architectural Clock</title>
+    <!-- <link rel="stylesheet" href="./style.css"> -->
+     <style>
+        :root {
+    --bg-dark: #000000; /* Vercel pure black */
+    --clock-bg: #0a0a0a; /* Elevated dark grey for subtle contrast */
+    --text-primary: #ffffff;
+    --text-muted: #888888; /* Vercel standard muted text */
+    --accent: #0070f3; /* Vercel blue */
+    --grid: rgba(255, 255, 255, 0.05);
+    --grid2: rgba(255, 255, 255, 0.486);
+    --track: rgba(255, 255, 255, 0.15);
+    --border: rgba(255, 255, 255, 0.14); /* Vercel subtle border */
+}
+
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+}
+
+body {
+    background-color: var(--bg-dark);
+    /* Vercel subtle dot pattern */
+    /* background-image: radial-gradient(rgba(255, 0, 0, 0.12) 1px, transparent 1px); */
+    background-image: radial-gradient(rgb(255, 0, 0) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: center center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.clock-case {
+    font-size: 10px; /* Base scaling unit */
+    width: 44em;
+    height: 44em;
+    border-radius: 50%;
+    background: var(--clock-bg);
+    border: 1px solid var(--border);
+    /* Soft ambient shadow standard to Vercel dark mode components */
+    box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2em; /* creates the outer bezel thickness */
+    overflow: hidden;
+}
+
+.clock-case::before {
+    content: '';
+    position: absolute;
+    width: 150%;
+    height: 150%;
+    top: -25%;
+    left: -25%;
+    background-image: 
+        linear-gradient(var(--grid2) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid2) 1px, transparent 1px);
+    background-size: 2.5em 2.5em;
+    background-position: center center;
+    z-index: 0;
+    transform: rotate(var(--case-rotate, 0deg));
+    transition: transform 0.1s ease-out;
+}
+
+@media (max-width: 500px) {
+    .clock-case { font-size: calc(90vw / 44); }
+}
+@media (max-height: 500px) {
+    .clock-case { font-size: min(calc(90vw / 44), calc(90vh / 44)); }
+}
+
+.clock-face {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    /* Clean inner grid */
+    background-color: var(--clock-bg);
+    background-image: 
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 2.5em 2.5em;
+    background-position: center center;
+    border: 1px solid var(--border);
+    box-shadow: none; /* Flat design */
+    overflow: hidden;
+    z-index: 10;
+}
+
+.minute-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: repeating-conic-gradient(
+        transparent 0deg,
+        transparent calc(6deg - 0.2deg),
+        var(--track) calc(6deg - 0.2deg),
+        var(--track) 6deg
+    );
+    -webkit-mask-image: radial-gradient(transparent 96%, black 96.5%, black 100%);
+    mask-image: radial-gradient(transparent 96%, black 96.5%, black 100%);
+}
+
+/* Beautiful modern typography */
+.hour {
+    position: absolute;
+    font-size: 3.8em;
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    color: var(--text-muted);
+    transform: translate(-50%, -50%);
+}
+.hour-12 { top: 14%; left: 50%; }
+.hour-3 { top: 50%; left: 86%; }
+.hour-6 { top: 86%; left: 50%; }
+.hour-9 { top: 50%; left: 14%; }
+
+/* Minimalist thick markers for the other hours */
+.markers {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+.marker {
+    position: absolute;
+    width: 0.6em;
+    height: 100%;
+    left: calc(50% - 0.3em);
+    top: 0;
+    transform: rotate(calc(var(--i) * 30deg));
+}
+.marker::before {
+    content: '';
+    position: absolute;
+    top: 2.5em;
+    left: 0;
+    width: 100%;
+    height: 3em;
+    background: var(--text-muted);
+    border-radius: 0.1em;
+}
+
+/* Technical Details */
+.tech-text {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7em;
+    font-weight: 600;
+    letter-spacing: 0.4em;
+    color: var(--text-muted);
+}
+.tech-text.top { top: 28%; }
+.tech-text.bottom { bottom: 28%; }
+
+/* Hands */
+.hand {
+    position: absolute;
+    bottom: 50%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    transform-origin: bottom center;
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.8); /* Crisp UI shadow */
+    z-index: 50;
+}
+
+.hour-hand {
+    width: 1.2em;
+    height: 11em;
+    border-radius: 10000% 10000% 0% 0%;
+    background: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+.hour-ring{
+    width: 40%;
+    background-color: #0070f3;
+    height: 70%;
+    border:2px solid #0070f3;
+    border-radius: 10000% 10000% 0% 0%;
+
+
+}
+
+.minute-hand {
+    width: 0.8em;
+    height: 17em;
+    border-radius: 10000% 10000% 0% 0%;
+    background: var(--text-primary);
+}
+
+.second-hand {
+    width: 0.25em;
+    height: 22em;
+    background: var(--accent);
+    bottom: calc(50% - 4em);
+    transform-origin: center calc(100% - 4em);
+    border-radius: 0;
+    box-shadow: none;
+    z-index: 55;
+}
+/* Crosshair counterweight */
+.second-hand::after {
+    content: '';
+    position: absolute;
+    bottom: 2.75em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2.5em;
+    height: 2.5em;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: var(--clock-bg);
+}
+
+.center-pin {
+    width: 1.4em;
+    height: 1.4em;
+    border-radius: 50%;
+    background: var(--text-primary);
+    border: 2px solid var(--clock-bg);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    z-index: 100;
+}
+
+/* Millisecond Subdial */
+.ms-dial {
+    position: absolute;
+    width: 5.5em;
+    height: 5.5em;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    top: 50%;
+    left: 68%;
+    transform: translate(-50%, -50%);
+    background: var(--clock-bg);
+    z-index: 40;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.ms-marker {
+    position: absolute;
+    width: 0.15em;
+    height: 100%;
+    left: calc(50% - 0.075em);
+    top: 0;
+    transform: rotate(calc(var(--i) * 30deg));
+}
+.ms-marker::before {
+    content: '';
+    position: absolute;
+    top: 0.2em;
+    left: 0;
+    width: 100%;
+    height: 0.5em;
+    background: var(--text-muted);
+}
+.ms-spinning-disc {
+    width: 3.8em;
+    height: 3.8em;
+    border-radius: 50%;
+    position: relative;
+    /* Spinning Grid Pattern */
+    background-image: 
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 0.8em 0.8em;
+    background-position: center center;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+.ms-red-marker {
+    position: absolute;
+    width: 0.15em;
+    height: 50%;
+    background: #ff3333;
+    top: 0;
+    left: calc(50% - 0.075em);
+}
+
+/* 24-Hour Subdial */
+.hr-dial {
+    position: absolute;
+    width: 5.5em;
+    height: 5.5em;
+    border-radius: 50%;
+    top: 50%;
+    left: 32%;
+    transform: translate(-50%, -50%);
+    z-index: 40;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.hr-spinning-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+}
+.hr-red-marker {
+    position: absolute;
+    width: 0.15em;
+    height: 0.8em;
+    background: #ff3333;
+    top: 0;
+    left: calc(50% - 0.075em);
+}
+.hr-inner-disc {
+    width: 3.8em;
+    height: 3.8em;
+    border-radius: 50%;
+    position: relative;
+    background-image: 
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 0.8em 0.8em;
+    background-position: center center;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+.hr-marker {
+    position: absolute;
+    width: 0.1em;
+    height: 100%;
+    left: calc(50% - 0.05em);
+    top: 0;
+    transform: rotate(calc(var(--i) * 15deg));
+}
+.hr-marker::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0.3em;
+    background: var(--text-muted);
+}
+.hr-marker.major::before {
+    height: 0.5em;
+    width: 0.15em;
+    left: -0.025em;
+    background: var(--text-primary);
+}
+     </style>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"> -->
+</head>
+<body class="body" id="body">
+    <div class="container">
+        <div class="clock-case">
+            <div class="clock-face">
+                <!-- Programmed Grid Pattern -->
+                <div class="precision-grid"></div>
+                <!-- Razor-thin Minute Track -->
+                <div class="minute-track"></div>
+                
+                <!-- Modern Typography -->
+                <div class="hours">
+                    <span class="hour hour-12">12</span>
+                    <span class="hour hour-3">03</span>
+                    <span class="hour hour-6">06</span>
+                    <span class="hour hour-9">09</span>
+                </div>
+                
+                <!-- Geometric Markers -->
+                <div class="markers">
+                    <div class="marker" style="--i:1;"></div>
+                    <div class="marker" style="--i:2;"></div>
+                    <div class="marker" style="--i:4;"></div>
+                    <div class="marker" style="--i:5;"></div>
+                    <div class="marker" style="--i:7;"></div>
+                    <div class="marker" style="--i:8;"></div>
+                    <div class="marker" style="--i:10;"></div>
+                    <div class="marker" style="--i:11;"></div>
+                </div>
+
+                <!-- Technical Detailing -->
+                <div class="tech-text top">SYS-<span id="tech-detail">CLOCK</span></div>
+                <div class="tech-text bottom">MK-IV // 28,800 VPH</div>
+
+                <!-- Subdial for milliseconds -->
+                <div class="ms-dial">
+                    <div class="ms-marker" style="--i:0;"></div>
+                    <div class="ms-marker" style="--i:1;"></div>
+                    <div class="ms-marker" style="--i:2;"></div>
+                    <div class="ms-marker" style="--i:3;"></div>
+                    <div class="ms-marker" style="--i:4;"></div>
+                    <div class="ms-marker" style="--i:5;"></div>
+                    <div class="ms-marker" style="--i:6;"></div>
+                    <div class="ms-marker" style="--i:7;"></div>
+                    <div class="ms-marker" style="--i:8;"></div>
+                    <div class="ms-marker" style="--i:9;"></div>
+                    <div class="ms-marker" style="--i:10;"></div>
+                    <div class="ms-marker" style="--i:11;"></div>
+                    <div class="ms-spinning-disc" id="ms-spinning-disc">
+                        <div class="ms-red-marker"></div>
+                    </div>
+                </div>
+
+                <!-- Subdial for 24 Hour -->
+                <div class="hr-dial">
+                    <div class="hr-spinning-ring" id="hr-spinning-ring">
+                        <div class="hr-red-marker"></div>
+                    </div>
+                    <div class="hr-inner-disc">
+                        <div class="hr-marker major" style="--i:0;"></div>
+                        <div class="hr-marker" style="--i:1;"></div>
+                        <div class="hr-marker" style="--i:2;"></div>
+                        <div class="hr-marker" style="--i:3;"></div>
+                        <div class="hr-marker" style="--i:4;"></div>
+                        <div class="hr-marker" style="--i:5;"></div>
+                        <div class="hr-marker major" style="--i:6;"></div>
+                        <div class="hr-marker" style="--i:7;"></div>
+                        <div class="hr-marker" style="--i:8;"></div>
+                        <div class="hr-marker" style="--i:9;"></div>
+                        <div class="hr-marker" style="--i:10;"></div>
+                        <div class="hr-marker" style="--i:11;"></div>
+                        <div class="hr-marker major" style="--i:12;"></div>
+                        <div class="hr-marker" style="--i:13;"></div>
+                        <div class="hr-marker" style="--i:14;"></div>
+                        <div class="hr-marker" style="--i:15;"></div>
+                        <div class="hr-marker" style="--i:16;"></div>
+                        <div class="hr-marker" style="--i:17;"></div>
+                        <div class="hr-marker major" style="--i:18;"></div>
+                        <div class="hr-marker" style="--i:19;"></div>
+                        <div class="hr-marker" style="--i:20;"></div>
+                        <div class="hr-marker" style="--i:21;"></div>
+                        <div class="hr-marker" style="--i:22;"></div>
+                        <div class="hr-marker" style="--i:23;"></div>
+                    </div>
+                </div>
+
+                <!-- Flat Geometric Hands -->
+                <div class="hand hour-hand" id="hour-hand">
+                    <div class="hour-ring"></div>
+                </div>
+                <div class="hand minute-hand" id="minute-hand"></div>
+                <div class="hand second-hand" id="second-hand"></div>
+                
+                <div class="center-pin"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Script left intentionally to ensure nothing breaks on user side -->
+    <!-- <script src="./script.js"></script> -->
+     <script>
+        let hourHand = document.getElementById("hour-hand")
+let minuteHand = document.getElementById("minute-hand")
+let secondHand = document.getElementById("second-hand")
+let msSpinningDisc = document.getElementById("ms-spinning-disc")
+let hrSpinningRing = document.getElementById("hr-spinning-ring")
+let clockCase = document.querySelector(".clock-case")
+        let detail = document.getElementById('tech-detail')
+
+let stopwatch
+
+let startClock = ()=>{
+    let second = Temporal.Now.plainTimeISO('Asia/Kolkata').second 
+    let secondmove = second * 6
+    secondHand.style.rotate = `${secondmove}deg`
+
+    let minute = Temporal.Now.plainTimeISO('Asia/Kolkata').minute
+    let minutemove = minute * 6
+    minuteHand.style.rotate = `${minutemove}deg`
+
+    let hour = Temporal.Now.plainTimeISO('Asia/Kolkata').hour
+    let hourmove = (hour * 30) + (minute * 0.5)
+    hourHand.style.rotate = `${hourmove}deg`
+    // console.log(hour,hourmove)
+
+    let rawMs = Temporal.Now.plainTimeISO('Asia/Kolkata').millisecond
+    let ms = Math.floor(rawMs / 100) * 100
+    let msmove = ms * 0.36
+    msSpinningDisc.style.rotate = `${msmove}deg`
+
+    let hr24 = Temporal.Now.plainTimeISO('Asia/Kolkata').hour
+    let min24 = Temporal.Now.plainTimeISO('Asia/Kolkata').minute
+    let hr24move = (hr24 * 15) + (min24 * 0.25)
+    if(hrSpinningRing) hrSpinningRing.style.rotate = `${hr24move}deg`
+
+    if(clockCase) clockCase.style.setProperty('--case-rotate', `-${secondmove}deg`)
+}
+function startTimeColorPattern() {
+    // Run exactly every 1 second
+    setInterval(() => {
+        const now = new Date();
+        const h = now.getHours();   // 0-23
+        const m = now.getMinutes(); // 0-59
+        const s = now.getSeconds(); // 0-59
+
+        // Map time variables to the 0-255 RGB spectrum uniquely
+        const r = Math.round((h / 23) * 255);
+        const g = Math.round((m / 59) * 255);
+        const b = Math.round((s / 59) * 255);
+
+        // Apply it directly to your Vercel dot pattern
+        // Keeping your 0.12 opacity (See note below regarding decoding)
+        document.body.style.backgroundImage = 
+            `radial-gradient(rgba(${r}, ${g}, ${b}) 1px, transparent 1px)`;
+        
+    }, 1000);
+}
+let clockInterval;
+// Add the event listener to the body
+document.body.addEventListener('keydown', (event) => {
+    // Check if the pressed key is 's' or 'S'
+    if (event.key === 's' || event.key === 'S') {
+        executeMyFunction();
+    }
+});
+
+// The function you want to execute
+function executeMyFunction() {
+    clearInterval(stopwatch)
+    detail.innerText = "STOPED"
+      clearInterval(clockInterval)
+    }
+document.body.addEventListener('keydown', (event) => {
+    // Check if the pressed key is 's' or 'S'
+    if (event.key === 't' || event.key === 'T') {
+        executeClock();
+    }
+});
+
+// The function you want to execute
+function executeClock() {
+    clearInterval(stopwatch)
+    detail.innerText = "CLOCK"
+      clearInterval(clockInterval)
+clockInterval = setInterval(startClock,1)
+startTimeColorPattern();
+
+
+    }
+
+
+let tapCount = 0;
+
+document.body.addEventListener("click", (event) => {
+    tapCount++;
+    
+    switch (tapCount) {
+        case 1:
+            // mimics 'T' or 't' (Start Clock)
+            executeClock();
+            break;
+        case 2:
+            // mimics 'S' or 's' (Stop Clock)
+            executeMyFunction();
+            break;
+        case 3:
+            // mimics 'U' or 'u' (Stopwatch Stop)
+            stopwatchStop();
+            break;
+        case 4:
+            // mimics 'I' or 'i' (Stopwatch Start)
+            stopwatchStart();
+            break;
+        case 5:
+            // mimics 'S' or 's' (Stop Clock)
+            executeMyFunction();
+            break;
+        case 6:
+            // mimics 'U' or 'u' (Stopwatch Stop)
+            stopwatchStop();
+            tapCount = 0; 
+            break;
+    }
+});
+
+document.body.addEventListener("keydown",(event)=>{
+    if(event.key == "u" || event.key == "U"){
+        stopwatchStop()
+        // clockCase
+    }
+})
+document.body.addEventListener("keydown",(event)=>{
+    if(event.key == "i" || event.key == "I"){
+        stopwatchStart()
+        // clockCase
+    }
+})
+// Initialize the pattern
+
+function stopwatchStop(){
+    clearInterval(stopwatch)
+    executeMyFunction()
+        detail.innerText = "STOPWATCH"
+        hourHand.style.rotate = '0deg'
+        minuteHand.style.rotate = "0deg"
+        secondHand.style.rotate = '0deg'
+        msSpinningDisc.style.rotate = '0deg'
+        hrSpinningRing.style.rotate = '0deg'
+}
+function stopwatchStart() {
+    // 1. Clear any existing intervals so they don't stack
+    clearInterval(stopwatch); 
+
+    // 2. Record the exact time the stopwatch started
+    const startTime = Date.now(); 
+
+    // 3. Run the interval. 
+    // We can run it every 16ms (which is ~60 frames per second).
+    // Because we calculate the actual time difference, it will be perfectly accurate!
+    stopwatch = setInterval(() => {
+        // Calculate the exact real milliseconds that have passed
+        let elapsedTime = Date.now() - startTime; 
+
+        // --- THE FAST HAND (1 revolution per second) ---
+        // Your math: 0.36 degrees per ms = 360 degrees per 1000ms
+        // Using % 1000 resets the hand perfectly every second without resetting our main timer
+        let secondMove = (elapsedTime % 1000) * 0.36;
+        secondHand.style.rotate = `${secondMove}deg`;
+
+        // --- THE 60-SECOND HAND ---
+        // 360 degrees / 60000 ms (1 minute) = 0.006 degrees per millisecond.
+        // This ensures a perfectly smooth sweep across the whole 60 seconds!
+        let minuteMove = elapsedTime * 0.006;
+        minuteHand.style.rotate = `${minuteMove}deg`;
+
+        let hourMove = (elapsedTime / 60000) * 30;
+    hourHand.style.rotate = `${hourMove}deg`;
+
+    }, 16); 
+}
+
+     </script>
+</body>
+</html>

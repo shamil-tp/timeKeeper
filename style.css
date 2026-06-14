@@ -1,0 +1,206 @@
+:root {
+    --bg-dark: #000000; /* Vercel pure black */
+    --clock-bg: #0a0a0a; /* Elevated dark grey for subtle contrast */
+    --text-primary: #ffffff;
+    --text-muted: #888888; /* Vercel standard muted text */
+    --accent: #0070f3; /* Vercel blue */
+    --grid: rgba(255, 255, 255, 0.05);
+    --track: rgba(255, 255, 255, 0.15);
+    --border: rgba(255, 255, 255, 0.14); /* Vercel subtle border */
+}
+
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+}
+
+body {
+    background-color: var(--bg-dark);
+    /* Vercel subtle dot pattern */
+    background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: center center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.clock-case {
+    font-size: 10px; /* Base scaling unit */
+    width: 44em;
+    height: 44em;
+    border-radius: 50%;
+    background: var(--clock-bg);
+    border: 1px solid var(--border);
+    /* Soft ambient shadow standard to Vercel dark mode components */
+    box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2em; /* creates the outer bezel thickness */
+}
+
+@media (max-width: 500px) {
+    .clock-case { font-size: calc(90vw / 44); }
+}
+@media (max-height: 500px) {
+    .clock-case { font-size: min(calc(90vw / 44), calc(90vh / 44)); }
+}
+
+.clock-face {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    /* Clean inner grid */
+    background-image: 
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 2.5em 2.5em;
+    background-position: center center;
+    border: 1px solid var(--border);
+    box-shadow: none; /* Flat design */
+    overflow: hidden;
+}
+
+.minute-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: repeating-conic-gradient(
+        transparent 0deg,
+        transparent calc(6deg - 0.2deg),
+        var(--track) calc(6deg - 0.2deg),
+        var(--track) 6deg
+    );
+    -webkit-mask-image: radial-gradient(transparent 96%, black 96.5%, black 100%);
+    mask-image: radial-gradient(transparent 96%, black 96.5%, black 100%);
+}
+
+/* Beautiful modern typography */
+.hour {
+    position: absolute;
+    font-size: 3.8em;
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    color: var(--text-muted);
+    transform: translate(-50%, -50%);
+}
+.hour-12 { top: 14%; left: 50%; }
+.hour-3 { top: 50%; left: 86%; }
+.hour-6 { top: 86%; left: 50%; }
+.hour-9 { top: 50%; left: 14%; }
+
+/* Minimalist thick markers for the other hours */
+.markers {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+.marker {
+    position: absolute;
+    width: 0.6em;
+    height: 100%;
+    left: calc(50% - 0.3em);
+    top: 0;
+    transform: rotate(calc(var(--i) * 30deg));
+}
+.marker::before {
+    content: '';
+    position: absolute;
+    top: 2.5em;
+    left: 0;
+    width: 100%;
+    height: 3em;
+    background: var(--text-muted);
+    border-radius: 0.1em;
+}
+
+/* Technical Details */
+.tech-text {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7em;
+    font-weight: 600;
+    letter-spacing: 0.4em;
+    color: var(--text-muted);
+}
+.tech-text.top { top: 28%; }
+.tech-text.bottom { bottom: 28%; }
+
+/* Hands */
+.hand {
+    position: absolute;
+    bottom: 50%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    transform-origin: bottom center;
+    border-radius: 2px 2px 0 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.8); /* Crisp UI shadow */
+    z-index: 50;
+}
+
+.hour-hand {
+    width: 1.2em;
+    height: 11em;
+    background: var(--text-primary);
+}
+
+.minute-hand {
+    width: 0.8em;
+    height: 17em;
+    background: var(--text-primary);
+}
+
+.second-hand {
+    width: 0.25em;
+    height: 22em;
+    background: var(--accent);
+    bottom: calc(50% - 4em);
+    transform-origin: center calc(100% - 4em);
+    border-radius: 0;
+    box-shadow: none;
+    z-index: 55;
+}
+/* Crosshair counterweight */
+.second-hand::after {
+    content: '';
+    position: absolute;
+    bottom: 2.75em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2.5em;
+    height: 2.5em;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: var(--clock-bg);
+}
+
+.center-pin {
+    width: 1.4em;
+    height: 1.4em;
+    border-radius: 50%;
+    background: var(--text-primary);
+    border: 2px solid var(--clock-bg);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    z-index: 100;
+}

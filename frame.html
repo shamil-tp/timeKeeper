@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern PC Gaming</title>
+    <style>
+        :root {
+            --bg-color: #0f111a;
+            --text-primary: #e4e6eb;
+            --text-secondary: #a8b0c3;
+            --accent: #ff4655; /* Vibrant red accent */
+            --accent-glow: rgba(255, 70, 85, 0.2);
+            --card-bg: #1a1d2d;
+            --border: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden; /* non-scrollable */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 5rem;
+            position: relative;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(255, 70, 85, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 162, 255, 0.08), transparent 25%);
+        }
+
+        /* Ambient background grid */
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .content {
+            max-width: 60%;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #ffffff, #8b95a8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            max-width: 700px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Iframe positioned top right */
+        .preview-iframe {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            width: 500px;
+            height: 350px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            background: #000;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8), 0 0 30px var(--accent-glow);
+            z-index: 50;
+            transition: transform 0.3s ease;
+        }
+
+        .preview-iframe:hover {
+            transform: scale(1.02) translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .decorative-line {
+            position: absolute;
+            left: 5rem;
+            bottom: 5rem;
+            width: 100px;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Embedded clock project in the top right -->
+    <iframe class="preview-iframe" src="http://192.168.29.178:8090" title="Widget Preview"></iframe>
+    
+
+    <div class="content">
+        <h2>Next-Gen Hardware</h2>
+        <h1>Era of Unprecedented Fidelity.</h1>
+        <p>
+            Modern PC gaming has transcended traditional boundaries. With the advent of path-traced lighting, AI-driven upscaling, and ultra-high-speed NVMe storage, virtual worlds now rival reality. It is an age where precision engineering meets artistic vision, delivering experiences previously thought impossible.
+        </p>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">4K+</div>
+                <div class="stat-label">Native Resolution</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">240Hz</div>
+                <div class="stat-label">Refresh Rates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">RTX</div>
+                <div class="stat-label">Path Tracing</div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <div class="decorative-line"></div>
+
+</body>
+</html>
